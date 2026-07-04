@@ -1,0 +1,652 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>KaiZon Obfuscate — Ironveil Style</title>
+    <meta name="description" content="Mã hoá script Luau theo phong cách Ironveil, output dài, chạy trên Roblox.">
+    <link rel="icon" href="data:,">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+        }
+        :root {
+            --bg: #0e0b08;
+            --panel: #17130f;
+            --panel-2: #1d1812;
+            --border: #2a231c;
+            --border-soft: #231d17;
+            --text: #f2e9dd;
+            --text-dim: #b8ab97;
+            --text-faint: #7a6f60;
+            --red: #e4573d;
+            --teal: #4fd1c5;
+            --green: #6fbe7a;
+            --radius: 10px;
+            --mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+            --sans: 'Inter', system-ui, -apple-system, "Segoe UI", sans-serif;
+        }
+        body {
+            margin: 0;
+            background: radial-gradient(ellipse 900px 500px at 15% -10%, rgba(228, 87, 61, 0.08), transparent 60%),
+                radial-gradient(ellipse 700px 500px at 90% 10%, rgba(79, 209, 197, 0.06), transparent 60%), var(--bg);
+            color: var(--text);
+            font-family: var(--sans);
+            line-height: 1.6;
+            -webkit-font-smoothing: antialiased;
+        }
+        a {
+            color: var(--teal);
+            text-decoration: none;
+        }
+        a:hover {
+            text-decoration: underline;
+        }
+        h1,
+        h2,
+        h3 {
+            font-family: var(--mono);
+            font-weight: 700;
+            letter-spacing: -0.01em;
+            margin: 0 0 .5em 0;
+            color: var(--text);
+        }
+        .wrap {
+            max-width: 920px;
+            margin: 0 auto;
+            padding: 0 24px;
+        }
+        header.site {
+            position: sticky;
+            top: 0;
+            z-index: 20;
+            background: rgba(14, 11, 8, 0.85);
+            backdrop-filter: blur(8px);
+            border-bottom: 1px solid var(--border-soft);
+        }
+        .site-inner {
+            max-width: 920px;
+            margin: 0 auto;
+            padding: 16px 24px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+        }
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-family: var(--mono);
+            font-weight: 800;
+            font-size: 1.05rem;
+            color: var(--red);
+        }
+        .brand .dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 2px;
+            background: var(--red);
+            box-shadow: 0 0 12px rgba(228, 87, 61, 0.7);
+            flex-shrink: 0;
+        }
+        nav.site-nav {
+            display: flex;
+            gap: 22px;
+        }
+        nav.site-nav a {
+            color: var(--text-dim);
+            font-size: 0.92rem;
+            font-family: var(--mono);
+        }
+        nav.site-nav a:hover {
+            color: var(--red);
+            text-decoration: none;
+        }
+        .hero {
+            padding: 72px 24px 48px;
+            text-align: center;
+        }
+        .hero .eyebrow {
+            display: inline-block;
+            font-family: var(--mono);
+            font-size: 0.78rem;
+            letter-spacing: 0.14em;
+            text-transform: uppercase;
+            color: var(--red);
+            border: 1px solid rgba(228, 87, 61, 0.3);
+            background: rgba(228, 87, 61, 0.06);
+            padding: 6px 12px;
+            border-radius: 999px;
+            margin-bottom: 22px;
+        }
+        .hero h1 {
+            font-size: clamp(1.9rem, 5vw, 3.1rem);
+            line-height: 1.15;
+            margin-bottom: 16px;
+        }
+        .hero h1 .scramble {
+            color: var(--red);
+        }
+        .hero p.lede {
+            max-width: 560px;
+            margin: 0 auto;
+            color: var(--text-dim);
+            font-size: 1.05rem;
+        }
+        .panel {
+            background: var(--panel);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 22px;
+            box-shadow: 0 20px 60px -30px rgba(0, 0, 0, 0.7);
+        }
+        .tool-section {
+            padding: 0 24px 8px;
+        }
+        textarea#code-input,
+        textarea#code-output {
+            width: 100%;
+            min-height: 260px;
+            resize: vertical;
+            background: #0b0906;
+            color: #dcd3c4;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            font-family: var(--mono);
+            font-size: 0.86rem;
+            line-height: 1.5;
+            padding: 14px;
+            tab-size: 2;
+            white-space: pre;
+            overflow: auto;
+        }
+        textarea#code-input::placeholder {
+            color: var(--text-faint);
+        }
+        .dropzone {
+            border: 1px dashed var(--border);
+            border-radius: 8px;
+            padding: 34px 18px;
+            text-align: center;
+            color: var(--text-dim);
+            background: #0b0906;
+            cursor: pointer;
+            transition: border-color .15s ease, background .15s ease;
+        }
+        .dropzone:hover,
+        .dropzone.drag {
+            border-color: var(--red);
+            background: rgba(228, 87, 61, 0.04);
+        }
+        .dropzone strong {
+            color: var(--text);
+        }
+        .dropzone input[type="file"] {
+            display: none;
+        }
+        .filename-chip {
+            display: none;
+            margin-top: 12px;
+            font-family: var(--mono);
+            font-size: 0.85rem;
+            color: var(--teal);
+            background: rgba(79, 209, 197, 0.08);
+            border: 1px solid rgba(79, 209, 197, 0.25);
+            padding: 6px 12px;
+            border-radius: 6px;
+        }
+        .actions-row {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            flex-wrap: wrap;
+            margin-top: 18px;
+        }
+        .btn {
+            font-family: var(--mono);
+            font-size: 0.88rem;
+            font-weight: 700;
+            padding: 11px 22px;
+            border-radius: 8px;
+            border: 1px solid transparent;
+            cursor: pointer;
+            transition: transform .08s ease, filter .15s ease, opacity .15s;
+        }
+        .btn:active {
+            transform: translateY(1px);
+        }
+        .btn-primary {
+            background: var(--red);
+            color: #fff;
+        }
+        .btn-primary:hover {
+            filter: brightness(1.08);
+        }
+        .btn-primary:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            filter: none;
+        }
+        .btn-ghost {
+            background: transparent;
+            color: var(--text-dim);
+            border-color: var(--border);
+        }
+        .btn-ghost:hover {
+            color: var(--text);
+            border-color: var(--text-dim);
+        }
+        .status-line {
+            font-family: var(--mono);
+            font-size: 0.85rem;
+            color: var(--text-dim);
+            min-height: 1.4em;
+        }
+        .output-block {
+            display: none;
+            margin-top: 22px;
+        }
+        .output-block h3 {
+            font-size: 0.95rem;
+            color: var(--teal);
+            margin-bottom: 10px;
+        }
+        .output-actions {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-top: 14px;
+        }
+        .info-note {
+            background: var(--panel-2);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 16px 20px;
+            margin: 16px 0 8px 0;
+            color: var(--text-dim);
+            font-size: 0.9rem;
+        }
+        .info-note strong {
+            color: var(--red);
+        }
+        footer.site {
+            border-top: 1px solid var(--border-soft);
+            padding: 32px 24px 48px;
+            text-align: center;
+        }
+        footer.site p {
+            color: var(--text-faint);
+            font-family: var(--mono);
+            font-size: 0.82rem;
+            margin: 4px 0;
+        }
+        @media (max-width:720px) {
+            nav.site-nav {
+                display: none;
+            }
+            .hero {
+                padding: 52px 20px 36px;
+            }
+            .tool-section {
+                padding: 0 12px 8px;
+            }
+        }
+        @media (prefers-reduced-motion: reduce) {
+            html {
+                scroll-behavior: auto;
+            }
+            * {
+                animation-duration: 0.001ms !important;
+                transition-duration: 0.001ms !important;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <header class="site">
+        <div class="site-inner">
+            <div class="brand"><span class="dot"></span>KaiZon Obfuscate</div>
+            <nav class="site-nav">
+                <a href="#tool">Công cụ</a>
+                <a href="#how">Cách hoạt động</a>
+                <a href="#faq">Câu hỏi</a>
+            </nav>
+        </div>
+    </header>
+
+    <section class="hero">
+        <div class="wrap">
+            <span class="eyebrow">Ironveil Style — AST Transformation</span>
+            <h1 id="hero-title">Bảo vệ script Luau của bạn với <span class="scramble" id="scramble-word">KaiZon</span></h1>
+            <p class="lede">Dán code hoặc tải file .lua, obfuscate theo phong cách Ironveil — output dài, khó đọc, chạy trên Roblox.</p>
+        </div>
+    </section>
+
+    <div class="wrap">
+        <div class="panel" id="tool">
+            <div class="tool-section" style="padding-top:6px;">
+
+                <div class="info-note">
+                    ⚡ <strong>Chế độ duy nhất:</strong> Obfuscate theo cấu trúc <code>return(function(...)return(function(...)...end)(...)end)(...)</code> — giống Ironveil.
+                </div>
+
+                <div class="tabs" role="tablist" style="margin-bottom:16px;">
+                    <button class="tab-btn active" data-tab="paste" role="tab">Dán code</button>
+                    <button class="tab-btn" data-tab="upload" role="tab">Tải file lên</button>
+                </div>
+
+                <div class="tab-pane active" data-pane="paste">
+                    <textarea id="code-input" spellcheck="false" placeholder="-- Dán script Luau của bạn vào đây
+print(&quot;Hello from KaiZon!&quot;)"></textarea>
+                </div>
+
+                <div class="tab-pane" data-pane="upload">
+                    <label class="dropzone" id="dropzone" for="file-input">
+                        <div><strong>Nhấn để chọn file</strong> hoặc kéo-thả vào đây</div>
+                        <div style="margin-top:6px; font-size:0.8rem;">Hỗ trợ .lua, .txt</div>
+                        <input type="file" id="file-input" accept=".lua,.txt,text/plain">
+                    </label>
+                    <div class="filename-chip" id="filename-chip"></div>
+                </div>
+
+                <div class="actions-row">
+                    <button class="btn btn-primary" id="btn-obfuscate">Obfuscate</button>
+                    <span class="status-line" id="status-line"></span>
+                </div>
+
+                <div class="output-block" id="output-block">
+                    <h3>Kết quả đã obfuscate (Ironveil style)</h3>
+                    <textarea id="code-output" spellcheck="false" readonly></textarea>
+                    <div class="output-actions">
+                        <button class="btn btn-ghost" id="btn-copy">Copy</button>
+                        <button class="btn btn-primary" id="btn-download">Tải về .lua</button>
+                        <button class="btn btn-ghost" id="btn-new">Script mới</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer class="site">
+        <p>KaiZon Obfuscate — Ironveil style for Luau | Mã hoá cực mạnh, chạy trên Roblox.</p>
+    </footer>
+
+    <script>
+        (function() {
+            "use strict";
+
+            // ===== Helper =====
+            function randInt(min, max) { return Math.floor(Math.random() * (max - min + 1)) + min; }
+
+            function randString(length) {
+                const chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
+                let result = '';
+                for (let i = 0; i < length; i++) {
+                    result += chars.charAt(Math.floor(Math.random() * chars.length));
+                }
+                return result;
+            }
+
+            // ===== Ironveil-style obfuscator =====
+            function generateIronveilObfuscated(source) {
+                if (!source || source.trim().length === 0) {
+                    throw new Error("Vui lòng nhập hoặc tải lên script trước.");
+                }
+
+                // Clean source: remove comments
+                let cleanSource = source.replace(/--\[\[[\s\S]*?\]\]/g, '');
+                cleanSource = cleanSource.replace(/--.*$/gm, '');
+
+                const bytes = Array.from(new TextEncoder().encode(cleanSource));
+                const n = bytes.length;
+
+                // Generate random keys
+                const k1 = randInt(10, 200);
+                const k2 = randInt(1, 255);
+                const k3 = randInt(1, 255);
+
+                // Encode bytes: XOR + shift
+                const encoded = bytes.map((b, i) => {
+                    let eb = b ^ k1;
+                    eb = (eb + k2 + i) % 256;
+                    eb = eb ^ k3;
+                    return eb;
+                });
+
+                // Split into chunks for variable storage
+                const chunkSize = 300;
+                const chunks = [];
+                for (let i = 0; i < encoded.length; i += chunkSize) {
+                    chunks.push(encoded.slice(i, i + chunkSize));
+                }
+
+                // Generate random variable names
+                const vData = randString(12);
+                const vKeys = randString(12);
+                const vRes = randString(12);
+                const vI = randString(4);
+                const vB = randString(3);
+                const vDec = randString(14);
+                const vExec = randString(10);
+                const vChunk = randString(10);
+
+                const chunkVars = chunks.map(() => randString(10));
+
+                // Build obfuscated Lua
+                let lua = 'return(function(...)return(function(...)';
+
+                // Define chunk tables
+                chunks.forEach((chunk, idx) => {
+                    lua += `local ${chunkVars[idx]}={${chunk.join(',')}}`;
+                });
+
+                // Merge chunks into data table
+                lua += `local ${vData}={}`;
+                chunkVars.forEach(v => {
+                    lua += `for _,v in pairs(${v}) do table.insert(${vData},v) end`;
+                });
+
+                // Keys and decoder
+                lua += `local ${vKeys}={${k1},${k2},${k3}}`;
+                lua += `local ${vRes}={}`;
+                lua += `for ${vI}=1,#${vData} do`;
+                lua += `  local ${vB}=${vData}[${vI}]`;
+                lua += `  ${vB}=bit32.bxor(${vB},${vKeys}[3])`;
+                lua += `  ${vB}=(${vB}-${vKeys}[2]-(${vI}-1))%256`;
+                lua += `  ${vB}=bit32.bxor(${vB},${vKeys}[1])`;
+                lua += `  table.insert(${vRes},string.char(${vB}))`;
+                lua += `end`;
+                lua += `local ${vDec}=table.concat(${vRes})`;
+
+                // Inject dead code (variable junk)
+                for (let j = 0; j < 20; j++) {
+                    lua += `local ${randString(8)}=${randInt(1,999999)}`;
+                }
+
+                // Load and execute
+                lua += `local ${vExec}=(loadstring or load)`;
+                lua += `local ${vChunk}=${vExec}(${vDec})`;
+                lua += `if ${vChunk} then ${vChunk}() else warn("KaiZon: decode failed") end`;
+
+                // Close wrapper
+                lua += 'end)(...)end)(...)';
+
+                // Minify: remove spaces and newlines
+                lua = lua.replace(/\s+/g, ' ').trim();
+
+                const header = '-- Obfuscated by KaiZon (Ironveil style)\n-- Optimized for Roblox Luau\n';
+                return header + lua + '\n';
+            }
+
+            /* ===== UI ===== */
+            var tabButtons = document.querySelectorAll('.tab-btn');
+            var tabPanes = document.querySelectorAll('.tab-pane');
+            tabButtons.forEach(function(btn) {
+                btn.addEventListener('click', function() {
+                    tabButtons.forEach(function(b) { b.classList.remove('active'); });
+                    tabPanes.forEach(function(p) { p.classList.remove('active'); });
+                    btn.classList.add('active');
+                    document.querySelector('.tab-pane[data-pane="' + btn.dataset.tab + '"]').classList.add('active');
+                });
+            });
+
+            var codeInput = document.getElementById('code-input');
+            var codeOutput = document.getElementById('code-output');
+            var fileInput = document.getElementById('file-input');
+            var dropzone = document.getElementById('dropzone');
+            var filenameChip = document.getElementById('filename-chip');
+            var statusLine = document.getElementById('status-line');
+            var outputBlock = document.getElementById('output-block');
+            var btnObfuscate = document.getElementById('btn-obfuscate');
+
+            function readFileIntoEditor(file) {
+                if (!file) return;
+                var reader = new FileReader();
+                reader.onload = function(e) {
+                    codeInput.value = e.target.result;
+                    filenameChip.textContent = file.name + ' (' + file.size + ' bytes)';
+                    filenameChip.style.display = 'inline-block';
+                    tabButtons[0].click();
+                };
+                reader.onerror = function() {
+                    showStatus('Không đọc được file. Vui lòng thử lại.', 'var(--red)');
+                };
+                reader.readAsText(file);
+            }
+
+            fileInput.addEventListener('change', function() {
+                readFileIntoEditor(fileInput.files[0]);
+            });
+
+            ['dragover', 'dragenter'].forEach(function(evt) {
+                dropzone.addEventListener(evt, function(e) {
+                    e.preventDefault();
+                    dropzone.classList.add('drag');
+                });
+            });
+            ['dragleave', 'drop'].forEach(function(evt) {
+                dropzone.addEventListener(evt, function(e) {
+                    e.preventDefault();
+                    dropzone.classList.remove('drag');
+                });
+            });
+            dropzone.addEventListener('drop', function(e) {
+                var file = e.dataTransfer.files && e.dataTransfer.files[0];
+                readFileIntoEditor(file);
+            });
+
+            var statusTimeout;
+
+            function showStatus(message, color, autoclear) {
+                if (statusTimeout) clearTimeout(statusTimeout);
+                statusLine.textContent = message;
+                statusLine.style.color = color || 'var(--text-dim)';
+                if (autoclear) {
+                    statusTimeout = setTimeout(function() {
+                        statusLine.textContent = '';
+                    }, 4000);
+                }
+            }
+
+            var scrambleChars = "!<>-_\\/[]{}—=+*^?#________";
+
+            function scrambleTextOnce(el, finalText, duration) {
+                var reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+                if (reduced) { el.textContent = finalText; return; }
+                var frame = 0;
+                var totalFrames = Math.max(8, Math.floor(duration / 40));
+                var revealAt = Math.floor(totalFrames * 0.6);
+                var interval = setInterval(function() {
+                    var revealCount = Math.max(0, Math.floor(finalText.length * (frame - revealAt) / (totalFrames -
+                        revealAt)));
+                    var out = '';
+                    for (var i = 0; i < finalText.length; i++) {
+                        if (i < revealCount || frame >= totalFrames) {
+                            out += finalText[i];
+                        } else {
+                            out += finalText[i] === ' ' ? ' ' : scrambleChars[Math.floor(Math.random() * scrambleChars
+                                .length)];
+                        }
+                    }
+                    el.textContent = out;
+                    frame++;
+                    if (frame > totalFrames) {
+                        el.textContent = finalText;
+                        clearInterval(interval);
+                    }
+                }, 40);
+            }
+
+            btnObfuscate.addEventListener('click', function() {
+                var source = codeInput.value;
+                if (!source || source.replace(/\s/g, '').length === 0) {
+                    showStatus('Vui lòng nhập hoặc tải lên script trước.', 'var(--red)');
+                    return;
+                }
+                btnObfuscate.disabled = true;
+                showStatus('Đang obfuscate script, vui lòng đợi...');
+
+                setTimeout(function() {
+                    try {
+                        var result = generateIronveilObfuscated(source);
+                        codeOutput.value = result;
+                        outputBlock.style.display = 'block';
+                        showStatus('Obfuscate hoàn tất! Bạn có thể copy hoặc tải về ngay.', 'var(--green)',
+                        true);
+                    } catch (err) {
+                        showStatus(err.message || 'Đã xảy ra lỗi khi obfuscate. Vui lòng thử lại.',
+                        'var(--red)');
+                    } finally {
+                        btnObfuscate.disabled = false;
+                    }
+                }, 450);
+            });
+
+            document.getElementById('btn-copy').addEventListener('click', function() {
+                var text = codeOutput.value;
+                if (!text) return;
+                navigator.clipboard.writeText(text).then(function() {
+                    showStatus('Đã copy vào clipboard!', 'var(--green)', true);
+                }).catch(function() {
+                    showStatus('Không thể copy tự động, vui lòng copy thủ công.', 'var(--red)');
+                });
+            });
+
+            document.getElementById('btn-download').addEventListener('click', function() {
+                var text = codeOutput.value;
+                if (!text) return;
+                var blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
+                var url = URL.createObjectURL(blob);
+                var a = document.createElement('a');
+                a.href = url;
+                a.download = 'kaizon_obfuscated_' + Date.now() + '.lua';
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+            });
+
+            document.getElementById('btn-new').addEventListener('click', function() {
+                codeInput.value = '';
+                codeOutput.value = '';
+                outputBlock.style.display = 'none';
+                filenameChip.style.display = 'none';
+                showStatus('');
+                tabButtons[0].click();
+            });
+
+            window.addEventListener('DOMContentLoaded', function() {
+                scrambleTextOnce(document.getElementById('scramble-word'), 'KaiZon', 900);
+            });
+
+        })();
+    </script>
+
+</body>
+</html>
