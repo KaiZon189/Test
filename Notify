@@ -1,0 +1,719 @@
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local Players = game:GetService("Players")
+local LocalPlayer = Players.LocalPlayer
+local StarterGui = game:GetService("StarterGui")
+local Lighting = game:GetService("Lighting")
+local TweenService = game:GetService("TweenService")
+local Workspace = game:GetService("Workspace")
+local VirtualUser = game:GetService("VirtualUser")
+
+repeat wait() until game:IsLoaded() and LocalPlayer and LocalPlayer.Character
+
+local RedeemRemote = ReplicatedStorage:WaitForChild("Remotes"):FindFirstChild("Redeem")
+
+if not RedeemRemote then
+    warn("Redeem remote not found")
+    return
+end
+
+local Codes = {
+    "LIGHTNINGABUSE", "1LOSTADMIN", "ADMINFIGHT", "GIFTING_HOURS",
+    "NOMOREHACK", "BANEXPLOIT", "WildDares", "BossBuild", "GetPranked",
+    "EARN_FRUITS", "SUB2GAMERROBOT_RESET1", "KITT_RESET", "Bignews",
+    "CHANDLER", "Fudd10", "fudd10_v2", "Sub2UncleKizaru", "FIGHT4FRUIT",
+    "kittgaming", "TRIPLEABUSE", "Sub2CaptainMaui", "Sub2Fer999",
+    "Enyu_is_Pro", "Magicbus", "JCWK", "Starcodeheo", "Bluxxy",
+    "SUB2GAMERROBOT_EXP1", "Sub2NoobMaster123", "Sub2Daigrock",
+    "Axiore", "TantaiGaming", "StrawHatMaine", "Sub2OfficialNoobie",
+    "TheGreatAce", "JULYUPDATE_RESET", "ADMINHACKED", "SEATROLLING",
+    "24NOADMIN", "ADMIN_TROLL", "NEWTROLL", "SECRET_ADMIN",
+    "staffbattle", "NOEXPLOIT", "NOOB2ADMIN", "CODESLIDE",
+    "fruitconcepts", "krazydares", "RedeemCode", "BloxFruitsUpdate",
+    "NewWorld", "FruitBattles", "UpdateLogs"
+}
+
+local function RedeemAllCodes()
+    local successCount = 0
+    local failCount = 0
+    local totalCodes = #Codes
+    
+    for i, code in ipairs(Codes) do
+        if code and code ~= "" then
+            task.wait(0.12)
+            
+            local success, err = pcall(function()
+                RedeemRemote:InvokeServer(code)
+            end)
+            
+            if success then
+                successCount = successCount + 1
+                print("Success: " .. code)
+            else
+                failCount = failCount + 1
+            end
+        end
+    end
+    
+    print("Total: " .. totalCodes .. " | Success: " .. successCount .. " | Failed: " .. failCount)
+    
+    StarterGui:SetCore("SendNotification", {
+        Title = "Code Redeem",
+        Text = "Success: " .. successCount .. "/" .. totalCodes,
+        Duration = 5
+    })
+end
+
+pcall(function()
+    for _, childName in ipairs({"LightingLayers", "SeaTerrorCC", "FantasySky", "Atmosphere"}) do
+        local child = Lighting:FindFirstChild(childName)
+        if child then
+            child:Destroy()
+        end
+    end
+    
+    Lighting.FogEnd = 99999
+    Lighting.FogStart = 99999
+    
+    print("Fog removed successfully")
+end)
+
+local function AntiAFK()
+    LocalPlayer.Idled:Connect(function()
+        VirtualUser:CaptureController()
+        VirtualUser:ClickButton2(Vector2.new())
+    end)
+    
+    task.spawn(function()
+        while task.wait(30) do
+            pcall(function()
+                local char = LocalPlayer.Character
+                if char and char:FindFirstChild("HumanoidRootPart") then
+                    local hrp = char.HumanoidRootPart
+                    local randomOffset = Vector3.new(
+                        math.random(-5, 5),
+                        0,
+                        math.random(-5, 5)
+                    )
+                    hrp.CFrame = hrp.CFrame + randomOffset
+                end
+            end)
+        end
+    end)
+    
+    task.spawn(function()
+        while task.wait(60) do
+            pcall(function()
+                local char = LocalPlayer.Character
+                if char and char:FindFirstChild("Humanoid") then
+                    char.Humanoid:ChangeState(Enum.HumanoidStateType.Jumping)
+                end
+            end)
+        end
+    end)
+end
+
+local function OptimizePerformance()
+    pcall(function()
+        local Terrain = Workspace:FindFirstChildOfClass("Terrain")
+        if Terrain then
+            Terrain.WaterWaveSize = 0
+            Terrain.WaterWaveSpeed = 0
+            Terrain.WaterReflectance = 0
+            Terrain.WaterTransparency = 0
+        end
+        
+        Lighting.GlobalShadows = false
+        Lighting.FogEnd = 9e9
+        Lighting.FogStart = 9e9
+        Lighting.Brightness = 1
+        
+        for _, effect in pairs(Lighting:GetChildren()) do
+            if effect:IsA("DepthOfFieldEffect") or 
+               effect:IsA("BloomEffect") or 
+               effect:IsA("BlurEffect") or 
+               effect:IsA("SunRaysEffect") or 
+               effect:IsA("ColorCorrectionEffect") then
+                effect.Enabled = false
+            end
+        end
+        
+        settings().Rendering.QualityLevel = 1
+        
+        local function CleanUp(object)
+            if object:IsA("ParticleEmitter") or 
+               object:IsA("Smoke") or 
+               object:IsA("Fire") or 
+               object:IsA("Sparkles") then
+                object.Enabled = false
+            elseif object:IsA("Decal") or object:IsA("Texture") then
+                object:Destroy()
+            elseif object:IsA("BasePart") and not object:IsA("MeshPart") then
+                object.CastShadow = false
+                object.Material = Enum.Material.SmoothPlastic
+                object.Reflectance = 0
+            elseif object:IsA("Model") then
+                local name = object.Name:lower()
+                if name:find("tree") or 
+                   name:find("leaf") or 
+                   name:find("grass") or 
+                   name:find("bush") or 
+                   name:find("plant") then
+                    object:Destroy()
+                end
+            end
+        end
+        
+        for _, object in pairs(Workspace:GetDescendants()) do
+            CleanUp(object)
+        end
+        
+        Workspace.DescendantAdded:Connect(function(object)
+            pcall(function()
+                CleanUp(object)
+            end)
+        end)
+        
+        for _, sound in pairs(Workspace:GetDescendants()) do
+            if sound:IsA("Sound") and sound.Name ~= "Ambient" then
+                sound.Volume = 0
+                sound:Stop()
+            end
+        end
+        
+        if Lighting:FindFirstChild("LightingLayers") then
+            Lighting.LightingLayers:Destroy()
+        end
+        if Lighting:FindFirstChild("SeaTerrorCC") then
+            Lighting.SeaTerrorCC:Destroy()
+        end
+        if Lighting:FindFirstChild("FantasySky") then
+            Lighting.FantasySky:Destroy()
+        end
+        if Lighting:FindFirstChild("Atmosphere") then
+            Lighting.Atmosphere:Destroy()
+        end
+        
+        local WorldOrigin = Workspace:FindFirstChild("_WorldOrigin")
+        if WorldOrigin then
+            local hitEffects = {"SlashHit", "CurvedRing", "SwordSlash", "SlashTail"}
+            for _, effectName in ipairs(hitEffects) do
+                local effect = WorldOrigin:FindFirstChild(effectName)
+                if effect then
+                    effect:Destroy()
+                end
+            end
+        end
+    end)
+end
+
+AntiAFK()
+OptimizePerformance()
+
+local ScreenGui = Instance.new("ScreenGui")
+ScreenGui.Name = "FruitStockChecker"
+ScreenGui.Parent = game.CoreGui
+ScreenGui.Enabled = true
+ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+
+local ToggleButton = Instance.new("TextButton")
+ToggleButton.Name = "ToggleButton"
+ToggleButton.Parent = ScreenGui
+ToggleButton.AnchorPoint = Vector2.new(0.5, 0)
+ToggleButton.Position = UDim2.new(0.5, 0, 0, 5)
+ToggleButton.Size = UDim2.new(0, 120, 0, 30)
+ToggleButton.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+ToggleButton.BackgroundTransparency = 0.3
+ToggleButton.BorderSizePixel = 0
+ToggleButton.ZIndex = 10
+ToggleButton.Text = "Show Stock"
+ToggleButton.TextColor3 = Color3.fromRGB(255, 215, 0)
+ToggleButton.TextSize = 12
+ToggleButton.Font = Enum.Font.GothamBold
+
+local ToggleCorner = Instance.new("UICorner")
+ToggleCorner.Parent = ToggleButton
+ToggleCorner.CornerRadius = UDim.new(0, 6)
+
+local ToggleStroke = Instance.new("UIStroke")
+ToggleStroke.Parent = ToggleButton
+ToggleStroke.Color = Color3.fromRGB(255, 255, 255)
+ToggleStroke.Thickness = 1
+ToggleStroke.Transparency = 0.5
+
+local MainFrame = Instance.new("Frame")
+MainFrame.Name = "MainFrame"
+MainFrame.Parent = ScreenGui
+MainFrame.AnchorPoint = Vector2.new(0, 0)
+MainFrame.Position = UDim2.new(0, 10, 0.15, 0)
+MainFrame.Size = UDim2.new(0, 220, 0, 350)
+MainFrame.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+MainFrame.BackgroundTransparency = 0.3
+MainFrame.BorderSizePixel = 0
+MainFrame.ZIndex = 2
+MainFrame.ClipsDescendants = true
+MainFrame.Visible = false
+
+local MainCorner = Instance.new("UICorner")
+MainCorner.Parent = MainFrame
+MainCorner.CornerRadius = UDim.new(0, 6)
+
+local MainStroke = Instance.new("UIStroke")
+MainStroke.Parent = MainFrame
+MainStroke.Color = Color3.fromRGB(255, 255, 255)
+MainStroke.Thickness = 1
+MainStroke.Transparency = 0.5
+
+local TitleBar = Instance.new("Frame")
+TitleBar.Parent = MainFrame
+TitleBar.Size = UDim2.new(1, 0, 0, 24)
+TitleBar.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+TitleBar.BackgroundTransparency = 0.3
+
+local TitleCorner = Instance.new("UICorner")
+TitleCorner.Parent = TitleBar
+TitleCorner.CornerRadius = UDim.new(0, 6)
+
+local TitleLabel = Instance.new("TextLabel")
+TitleLabel.Parent = TitleBar
+TitleLabel.Size = UDim2.new(1, -25, 1, 0)
+TitleLabel.Position = UDim2.new(0, 8, 0, 0)
+TitleLabel.BackgroundTransparency = 1
+TitleLabel.Font = Enum.Font.GothamBold
+TitleLabel.Text = "Var Hub / Fruit Stock"
+TitleLabel.TextColor3 = Color3.fromRGB(255, 215, 0)
+TitleLabel.TextSize = 12
+TitleLabel.TextXAlignment = Enum.TextXAlignment.Left
+TitleLabel.TextYAlignment = Enum.TextYAlignment.Center
+
+local CloseBtn = Instance.new("ImageButton")
+CloseBtn.Parent = TitleBar
+CloseBtn.AnchorPoint = Vector2.new(1, 0.5)
+CloseBtn.Position = UDim2.new(1, -4, 0.5, 0)
+CloseBtn.Size = UDim2.new(0, 16, 0, 16)
+CloseBtn.BackgroundTransparency = 1
+CloseBtn.Image = "rbxassetid://6031090770"
+CloseBtn.ImageColor3 = Color3.fromRGB(255, 255, 255)
+CloseBtn.ZIndex = 5
+
+local ContentFrame = Instance.new("Frame")
+ContentFrame.Parent = MainFrame
+ContentFrame.AnchorPoint = Vector2.new(0, 0)
+ContentFrame.Position = UDim2.new(0, 3, 0, 28)
+ContentFrame.Size = UDim2.new(1, -6, 1, -34)
+ContentFrame.BackgroundTransparency = 1
+ContentFrame.ClipsDescendants = true
+
+local Scroller = Instance.new("ScrollingFrame")
+Scroller.Parent = ContentFrame
+Scroller.Size = UDim2.new(1, 0, 1, 0)
+Scroller.BackgroundTransparency = 1
+Scroller.ScrollBarThickness = 2
+Scroller.ScrollBarImageColor3 = Color3.fromRGB(255, 255, 255)
+Scroller.ScrollBarImageTransparency = 0.5
+Scroller.BorderSizePixel = 0
+Scroller.CanvasSize = UDim2.new(0, 0, 0, 0)
+
+local ListLayout = Instance.new("UIListLayout")
+ListLayout.Parent = Scroller
+ListLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
+ListLayout.VerticalAlignment = Enum.VerticalAlignment.Top
+ListLayout.SortOrder = Enum.SortOrder.LayoutOrder
+ListLayout.Padding = UDim.new(0, 2)
+
+local NormalStock = {}
+local AdvanceStock = {}
+local ResetAnimationCooldown = 0
+local ResetAnimationActive = false
+
+function GetFruitStock()
+    local normal = {}
+    local advance = {}
+    
+    local success1, normalFruits = pcall(function()
+        return ReplicatedStorage.Remotes.CommF_:InvokeServer("GetFruits")
+    end)
+    
+    if success1 and normalFruits then
+        for _, fruit in pairs(normalFruits) do
+            if fruit.OnSale then
+                table.insert(normal, {
+                    Name = fruit.Name,
+                    Price = fruit.Price or 0
+                })
+            end
+        end
+    end
+    
+    local success2, advanceFruits = pcall(function()
+        return ReplicatedStorage.Remotes.CommF_:InvokeServer("GetFruits", true)
+    end)
+    
+    if success2 and advanceFruits then
+        for _, fruit in pairs(advanceFruits) do
+            if fruit.OnSale then
+                table.insert(advance, {
+                    Name = fruit.Name,
+                    Price = fruit.Price or 0
+                })
+            end
+        end
+    end
+    
+    return normal, advance
+end
+
+function GetResetTime()
+    local reset = {Normal = "??:??:??", Advance = "??:??:??"}
+    
+    local success, data = pcall(function()
+        return ReplicatedStorage.Remotes.CommF_:InvokeServer("GetShopResetTime")
+    end)
+    
+    if success and data then
+        if type(data) == "number" then
+            local remaining = data - os.time()
+            if remaining > 0 then
+                local timeStr = string.format("%02d:%02d:%02d", 
+                    math.floor(remaining / 3600),
+                    math.floor((remaining % 3600) / 60),
+                    math.floor(remaining % 60)
+                )
+                reset.Normal = timeStr
+                reset.Advance = timeStr
+            else
+                reset.Normal = "Resetting"
+                reset.Advance = "Resetting"
+            end
+        elseif type(data) == "table" then
+            if data.Normal then
+                local remaining = data.Normal - os.time()
+                if remaining > 0 then
+                    reset.Normal = string.format("%02d:%02d:%02d", 
+                        math.floor(remaining / 3600),
+                        math.floor((remaining % 3600) / 60),
+                        math.floor(remaining % 60)
+                    )
+                else
+                    reset.Normal = "Resetting"
+                end
+            end
+            
+            if data.Advance then
+                local remaining = data.Advance - os.time()
+                if remaining > 0 then
+                    reset.Advance = string.format("%02d:%02d:%02d", 
+                        math.floor(remaining / 3600),
+                        math.floor((remaining % 3600) / 60),
+                        math.floor(remaining % 60)
+                    )
+                else
+                    reset.Advance = "Resetting"
+                end
+            end
+        end
+    else
+        local now = os.time()
+        local resetHour = 4
+        local todayReset = os.time({
+            year = os.date("%Y", now),
+            month = os.date("%m", now),
+            day = os.date("%d", now),
+            hour = resetHour,
+            min = 0,
+            sec = 0
+        })
+        
+        if now > todayReset then
+            todayReset = todayReset + 86400
+        end
+        
+        local remaining = todayReset - now
+        if remaining > 0 and remaining < 86400 then
+            local timeStr = string.format("%02d:%02d:%02d", 
+                math.floor(remaining / 3600),
+                math.floor((remaining % 3600) / 60),
+                math.floor(remaining % 60)
+            )
+            reset.Normal = timeStr
+            reset.Advance = timeStr
+        end
+    end
+    
+    return reset
+end
+
+function CheckStockChanged(old, new)
+    if #old ~= #new then return true end
+    for i, fruit in ipairs(new) do
+        if not old[i] or old[i].Name ~= fruit.Name or old[i].Price ~= fruit.Price then
+            return true
+        end
+    end
+    return false
+end
+
+function PlayResetAnimation()
+    if ResetAnimationActive then return end
+    ResetAnimationActive = true
+    
+    local flash = Instance.new("Frame")
+    flash.Parent = MainFrame
+    flash.Size = UDim2.new(1, 0, 1, 0)
+    flash.BackgroundColor3 = Color3.fromRGB(255, 215, 0)
+    flash.BackgroundTransparency = 1
+    flash.ZIndex = 10
+    flash.BorderSizePixel = 0
+    
+    local flashCorner = Instance.new("UICorner")
+    flashCorner.Parent = flash
+    flashCorner.CornerRadius = UDim.new(0, 6)
+    
+    TweenService:Create(flash, TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
+        BackgroundTransparency = 0.4
+    }):Play()
+    
+    task.wait(0.15)
+    
+    TweenService:Create(flash, TweenInfo.new(0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.In), {
+        BackgroundTransparency = 1
+    }):Play()
+    
+    task.wait(0.3)
+    flash:Destroy()
+    ResetAnimationActive = false
+end
+
+function CreateHeader(title, time, order)
+    local frame = Instance.new("Frame")
+    frame.Parent = Scroller
+    frame.Size = UDim2.new(1, 0, 0, 20)
+    frame.BackgroundTransparency = 1
+    frame.LayoutOrder = order
+    
+    local titleLbl = Instance.new("TextLabel")
+    titleLbl.Parent = frame
+    titleLbl.Size = UDim2.new(0.55, 0, 1, 0)
+    titleLbl.Position = UDim2.new(0, 2, 0, 0)
+    titleLbl.BackgroundTransparency = 1
+    titleLbl.Font = Enum.Font.GothamBold
+    titleLbl.Text = title
+    titleLbl.TextColor3 = Color3.fromRGB(255, 215, 0)
+    titleLbl.TextSize = 10
+    titleLbl.TextXAlignment = Enum.TextXAlignment.Left
+    titleLbl.TextYAlignment = Enum.TextYAlignment.Center
+    
+    local timeLbl = Instance.new("TextLabel")
+    timeLbl.Parent = frame
+    timeLbl.Size = UDim2.new(0.45, 0, 1, 0)
+    timeLbl.Position = UDim2.new(0.55, 0, 0, 0)
+    timeLbl.BackgroundTransparency = 1
+    timeLbl.Font = Enum.Font.GothamBold
+    timeLbl.Text = "Time: " .. time
+    timeLbl.TextColor3 = Color3.fromRGB(100, 255, 100)
+    timeLbl.TextSize = 9
+    timeLbl.TextXAlignment = Enum.TextXAlignment.Right
+    timeLbl.TextYAlignment = Enum.TextYAlignment.Center
+    
+    return frame
+end
+
+function CreateFruitRow(name, price, order)
+    local frame = Instance.new("Frame")
+    frame.Parent = Scroller
+    frame.Size = UDim2.new(1, -4, 0, 18)
+    frame.BackgroundTransparency = 0.2
+    frame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+    frame.LayoutOrder = order
+    
+    local corner = Instance.new("UICorner")
+    corner.Parent = frame
+    corner.CornerRadius = UDim.new(0, 3)
+    
+    local nameLbl = Instance.new("TextLabel")
+    nameLbl.Parent = frame
+    nameLbl.Size = UDim2.new(0.55, 0, 1, 0)
+    nameLbl.Position = UDim2.new(0, 4, 0, 0)
+    nameLbl.BackgroundTransparency = 1
+    nameLbl.Font = Enum.Font.GothamMedium
+    nameLbl.Text = name
+    nameLbl.TextColor3 = Color3.fromRGB(255, 255, 255)
+    nameLbl.TextSize = 10
+    nameLbl.TextXAlignment = Enum.TextXAlignment.Left
+    nameLbl.TextYAlignment = Enum.TextYAlignment.Center
+    
+    local priceStr = tostring(price)
+    if price >= 1000000 then
+        priceStr = string.format("%.1fM", price / 1000000)
+    elseif price >= 1000 then
+        priceStr = string.format("%.1fK", price / 1000)
+    end
+    
+    local priceLbl = Instance.new("TextLabel")
+    priceLbl.Parent = frame
+    priceLbl.Size = UDim2.new(0.45, 0, 1, 0)
+    priceLbl.Position = UDim2.new(0.55, 0, 0, 0)
+    priceLbl.BackgroundTransparency = 1
+    priceLbl.Font = Enum.Font.GothamMedium
+    priceLbl.Text = "$" .. priceStr
+    priceLbl.TextColor3 = Color3.fromRGB(100, 255, 100)
+    priceLbl.TextSize = 9
+    priceLbl.TextXAlignment = Enum.TextXAlignment.Right
+    priceLbl.TextYAlignment = Enum.TextYAlignment.Center
+    
+    return frame
+end
+
+function CreateEmptyRow(text, order)
+    local frame = Instance.new("Frame")
+    frame.Parent = Scroller
+    frame.Size = UDim2.new(1, -4, 0, 18)
+    frame.BackgroundTransparency = 1
+    frame.LayoutOrder = order
+    
+    local lbl = Instance.new("TextLabel")
+    lbl.Parent = frame
+    lbl.Size = UDim2.new(1, 0, 1, 0)
+    lbl.BackgroundTransparency = 1
+    lbl.Font = Enum.Font.GothamMedium
+    lbl.Text = text
+    lbl.TextColor3 = Color3.fromRGB(150, 150, 150)
+    lbl.TextSize = 9
+    lbl.TextXAlignment = Enum.TextXAlignment.Center
+    lbl.TextYAlignment = Enum.TextYAlignment.Center
+    
+    return frame
+end
+
+function CreateDivider(order)
+    local frame = Instance.new("Frame")
+    frame.Parent = Scroller
+    frame.Size = UDim2.new(0.9, 0, 0, 1)
+    frame.AnchorPoint = Vector2.new(0.5, 0)
+    frame.Position = UDim2.new(0.5, 0, 0, 0)
+    frame.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+    frame.BackgroundTransparency = 0.7
+    frame.LayoutOrder = order
+    return frame
+end
+
+function UpdateStockDisplay()
+    local normal, advance = GetFruitStock()
+    local resetTime = GetResetTime()
+    
+    if CheckStockChanged(NormalStock, normal) or CheckStockChanged(AdvanceStock, advance) then
+        if os.time() - ResetAnimationCooldown > 30 then
+            ResetAnimationCooldown = os.time()
+            task.spawn(PlayResetAnimation)
+        end
+    end
+    
+    NormalStock = normal
+    AdvanceStock = advance
+    
+    for _, child in pairs(Scroller:GetChildren()) do
+        if child:IsA("Frame") then child:Destroy() end
+    end
+    
+    local order = 0
+    
+    local h1 = CreateHeader("Normal Shop", resetTime.Normal, order)
+    order = order + 1
+    
+    if #normal > 0 then
+        for _, fruit in ipairs(normal) do
+            CreateFruitRow(fruit.Name, fruit.Price, order)
+            order = order + 1
+        end
+    else
+        CreateEmptyRow("No stock", order)
+        order = order + 1
+    end
+    
+    local div = CreateDivider(order)
+    order = order + 1
+    
+    local h2 = CreateHeader("Mystic Shop", resetTime.Advance, order)
+    order = order + 1
+    
+    if #advance > 0 then
+        for _, fruit in ipairs(advance) do
+            CreateFruitRow(fruit.Name, fruit.Price, order)
+            order = order + 1
+        end
+    else
+        CreateEmptyRow("No stock", order)
+        order = order + 1
+    end
+    
+    Scroller.CanvasSize = UDim2.new(0, 0, 0, order * 22 + 10)
+end
+
+local UIVisible = false
+
+ToggleButton.MouseButton1Click:Connect(function()
+    UIVisible = not UIVisible
+    MainFrame.Visible = UIVisible
+    ToggleButton.Text = UIVisible and "Hide Stock" or "Show Stock"
+end)
+
+CloseBtn.MouseButton1Click:Connect(function()
+    UIVisible = false
+    MainFrame.Visible = false
+    ToggleButton.Text = "Show Stock"
+end)
+
+local dragging = false
+local dragStart, btnStart
+
+MainFrame.InputBegan:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+        dragging = true
+        dragStart = input.Position
+        btnStart = MainFrame.Position
+    end
+end)
+
+MainFrame.InputEnded:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+        dragging = false
+    end
+end)
+
+game:GetService("UserInputService").InputChanged:Connect(function(input)
+    if dragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
+        local delta = input.Position - dragStart
+        MainFrame.Position = UDim2.new(
+            btnStart.X.Scale,
+            btnStart.X.Offset + delta.X,
+            btnStart.Y.Scale,
+            btnStart.Y.Offset + delta.Y
+        )
+    end
+end)
+
+task.wait(1)
+UpdateStockDisplay()
+
+task.spawn(function()
+    while task.wait(5) do
+        pcall(UpdateStockDisplay)
+    end
+end)
+
+pcall(function()
+    ReplicatedStorage.Remotes.CommE.OnClientEvent:Connect(function(...)
+        local args = {...}
+        if args[1] == "ShopReset" or args[1] == "FruitStockUpdate" then
+            task.wait(0.5)
+            pcall(UpdateStockDisplay)
+        end
+    end)
+end)
+
+StarterGui:SetCore("SendNotification", {
+    Title = "Hello Guys!",
+    Text = "Var Hub Loading...!",
+    Duration = 4
+})
+
+RedeemAllCodes()
